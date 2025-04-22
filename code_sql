@@ -1,0 +1,206 @@
+CREATE SCHEMA LibraryManagement;
+
+USE LibraryManagement;
+
+CREATE TABLE authors (
+  author_id INT AUTO_INCREMENT PRIMARY KEY,
+  author_name VARCHAR(50)
+);
+
+CREATE TABLE genres (
+  genre_id INT AUTO_INCREMENT PRIMARY KEY,
+  genre_name VARCHAR(50)
+);
+
+CREATE TABLE books (
+  book_id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(50),
+  publication_year YEAR,
+  author_id INT, 
+  FOREIGN KEY (author_id) REFERENCES authors (author_id),
+  genre_id INT,
+  FOREIGN KEY (genre_id) REFERENCES genres (genre_id)
+);
+
+CREATE TABLE users (
+  user_id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(50),
+  email VARCHAR(50)
+);
+
+CREATE TABLE borrowed_books (
+  borrow_id INT AUTO_INCREMENT PRIMARY KEY,
+  book_id INT,
+  FOREIGN KEY (book_id) REFERENCES books (book_id),
+  user_id INT,
+  FOREIGN KEY (user_id) REFERENCES users (user_id),
+  borrow_date DATE,
+  return_date DATE
+);
+
+
+INSERT INTO authors (author_id, author_name)
+VALUES 
+	(1, 'Steven Jones'),
+	(2, 'Jack Drew');
+    
+INSERT INTO genres (genre_id, genre_name)
+VALUES 
+	(1, 'Horror'),
+	(2, 'Fantasy');
+    
+INSERT INTO books (book_id, title, publication_year, author_id, genre_id)
+VALUES 
+	(1, 'Scary book', 2005, 2, 1),
+	(2, 'Fantasy book', 2013, 1, 2);
+    
+INSERT INTO users (user_id, username, email)
+VALUES 
+	(1, 'ricky123', 'rickyjohnes@gmail.com'),
+	(2, 'marty87', 'martybrooks@gmail.com' );
+    
+INSERT INTO borrowed_books (borrow_id, book_id, user_id, borrow_date, return_date)
+VALUES 
+	(1, 1, 1, '2025-04-12','2025-04-20'),
+	(2, 2, 2, '2025-04-13', '2025-04-19');
+
+
+### TASK 3 & 4 ##
+
+
+SELECT COUNT(*)
+FROM order_details as od
+INNER JOIN orders as o on od.order_id = o.id
+INNER JOIN customers as c on c.id = o.customer_id
+INNER JOIN products as p on p.id = od.product_id
+INNER JOIN categories as ct on ct.id = p.category_id
+INNER JOIN employees as e on e.employee_id = o.employee_id
+INNER JOIN shippers as s on s.id = o.shipper_id
+INNER JOIN suppliers as sp on sp.id = p.supplier_id;
+
+count returned - 518
+
+SELECT COUNT(*)
+FROM order_details as od
+INNER JOIN orders as o on od.order_id = o.id
+LEFT JOIN customers as c on c.id = o.customer_id
+RIGHT JOIN products as p on p.id = od.product_id
+INNER JOIN categories as ct on ct.id = p.category_id
+INNER JOIN employees as e on e.employee_id = o.employee_id
+INNER JOIN shippers as s on s.id = o.shipper_id
+INNER JOIN suppliers as sp on sp.id = p.supplier_id;
+
+count returned - 518 - No change due to replacing inner with left or right join as all the tables contain all the needed rows 
+
+SELECT COUNT(*)
+FROM order_details as od
+INNER JOIN orders as o on od.order_id = o.id
+LEFT JOIN customers as c on c.id = o.customer_id
+RIGHT JOIN products as p on p.id = od.product_id
+INNER JOIN categories as ct on ct.id = p.category_id
+INNER JOIN employees as e on e.employee_id = o.employee_id
+INNER JOIN shippers as s on s.id = o.shipper_id
+INNER JOIN suppliers as sp on sp.id = p.supplier_id
+WHERE e.employee_id > 3 AND e.employee_id <= 10;
+
+count returned - 317
+
+SELECT COUNT(*), ct.name as cat_name, AVG(od.quantity) as avg_quantity
+FROM order_details as od
+INNER JOIN orders as o on od.order_id = o.id
+LEFT JOIN customers as c on c.id = o.customer_id
+RIGHT JOIN products as p on p.id = od.product_id
+INNER JOIN categories as ct on ct.id = p.category_id
+INNER JOIN employees as e on e.employee_id = o.employee_id
+INNER JOIN shippers as s on s.id = o.shipper_id
+INNER JOIN suppliers as sp on sp.id = p.supplier_id
+WHERE e.employee_id > 3 AND e.employee_id <= 10
+GROUP BY ct.name;
+
+Returned: 
+COUNT(*), cat_name, avg_quantity
+'58','Dairy Products','27.4655'
+'21','Produce','25.2381'
+'51','Confections','23.8627'
+'62','Beverages','25.1290'
+'30','Condiments','26.9000'
+'40','Seafood','22.7000'
+'31','Meat/Poultry','21.5806'
+'24','Grains/Cereals','20.7083'
+
+
+
+SELECT COUNT(*), ct.name as cat_name, AVG(od.quantity) as avg_quantity
+FROM order_details as od
+INNER JOIN orders as o on od.order_id = o.id
+LEFT JOIN customers as c on c.id = o.customer_id
+RIGHT JOIN products as p on p.id = od.product_id
+INNER JOIN categories as ct on ct.id = p.category_id
+INNER JOIN employees as e on e.employee_id = o.employee_id
+INNER JOIN shippers as s on s.id = o.shipper_id
+INNER JOIN suppliers as sp on sp.id = p.supplier_id
+WHERE e.employee_id > 3 AND e.employee_id <= 10
+GROUP BY ct.name
+HAVING avg_quantity>21;
+
+Returned:
+COUNT(*), cat_name, avg_quantity
+'58','Dairy Products','27.4655'
+'21','Produce','25.2381'
+'51','Confections','23.8627'
+'62','Beverages','25.1290'
+'30','Condiments','26.9000'
+'40','Seafood','22.7000'
+'31','Meat/Poultry','21.5806'
+
+
+SELECT COUNT(*) as row_count, ct.name as cat_name, AVG(od.quantity) as avg_quantity
+FROM order_details as od
+INNER JOIN orders as o on od.order_id = o.id
+LEFT JOIN customers as c on c.id = o.customer_id
+RIGHT JOIN products as p on p.id = od.product_id
+INNER JOIN categories as ct on ct.id = p.category_id
+INNER JOIN employees as e on e.employee_id = o.employee_id
+INNER JOIN shippers as s on s.id = o.shipper_id
+INNER JOIN suppliers as sp on sp.id = p.supplier_id
+WHERE e.employee_id > 3 AND e.employee_id <= 10
+GROUP BY ct.name
+HAVING avg_quantity>21
+ORDER BY row_count DESC;
+
+Returned:
+row_count, cat_name, avg_quantity
+'62','Beverages','25.1290'
+'58','Dairy Products','27.4655'
+'51','Confections','23.8627'
+'40','Seafood','22.7000'
+'31','Meat/Poultry','21.5806'
+'30','Condiments','26.9000'
+'21','Produce','25.2381'
+
+
+SELECT COUNT(*) as row_count, ct.name as cat_name, AVG(od.quantity) as avg_quantity
+FROM order_details as od
+INNER JOIN orders as o on od.order_id = o.id
+LEFT JOIN customers as c on c.id = o.customer_id
+RIGHT JOIN products as p on p.id = od.product_id
+INNER JOIN categories as ct on ct.id = p.category_id
+INNER JOIN employees as e on e.employee_id = o.employee_id
+INNER JOIN shippers as s on s.id = o.shipper_id
+INNER JOIN suppliers as sp on sp.id = p.supplier_id
+WHERE e.employee_id > 3 AND e.employee_id <= 10
+GROUP BY ct.name
+HAVING avg_quantity>21
+ORDER BY row_count DESC
+LIMIT 4 OFFSET 1;
+
+
+Returned:
+row_count, cat_name, avg_quantity
+'58','Dairy Products','27.4655'
+'51','Confections','23.8627'
+'40','Seafood','22.7000'
+'31','Meat/Poultry','21.5806'
+
+
+
